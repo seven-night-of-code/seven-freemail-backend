@@ -57,5 +57,5 @@ const user = new schema({
     timestamps:true
 },
 );
-    const userModel = mongoose.model("users",user);
+    const userModel = mongoose.model("Users",user);
 module.exports = userModel;

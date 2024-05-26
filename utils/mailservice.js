@@ -18,7 +18,7 @@ class MailService {
         try {
 
             await this.transporter().sendMail({
-                from: "smart study <smartstudyteam07@gmail.com>",
+                from: "Free Email <smartstudyteam07@gmail.com>",
                 to: receivers,
                 subject: subject,
                 text: content,
