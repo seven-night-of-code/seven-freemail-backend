@@ -36,6 +36,17 @@ const User = new schema({
         type:String,
         required:false,
         default:"DP"
+    },
+    api_key: {
+        type: String,
+        required: false,
+    
+    },
+    api_status: {
+        type: string,
+        required: false,
+        default: 'active',
+        enum: ['active', 'inactive'],
     }
 },
 {
