@@ -4,11 +4,14 @@ const token = require('../services/base.service.generateToken')
 const Login = async (req, res, next) => {
 
     try {
-        const user = new User({
+        const user = ({
         email : req.body.email,
         password : req.body.password
       });
-      await user.save();
+
+      if (email && password === req.body.email && req.body.password) {
+        
+      }
 
       return res.status(201).json({
         error: false,

@@ -57,10 +57,6 @@ const user = new schema({
     timestamps:true
 },
 );
-<<<<<<< HEAD
 
 const userModel = mongoose.model("Users",User);
-=======
-    const userModel = mongoose.model("users",user);
->>>>>>> f76162b22f17404ffc9eced024697b0fd02f007e
 module.exports = userModel;
