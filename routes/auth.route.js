@@ -3,4 +3,5 @@ const router = Router();
 
 const authController = require('../controllers/auth.controller')
 
-router.post('/', authController.reset_password)
+router.post('/', authController.confirm_email);
+router.post('/', authController.update_password)
