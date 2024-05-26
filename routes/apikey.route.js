@@ -1,6 +1,7 @@
 const { Router } = require("express");
+const router = Router();
 const apikeyController = require("../controllers/apikey.controller.")
 
-Router.get('/toggle', apikeyController.apiToggle)
+router.get('/toggle/:id', apikeyController.apiToggle)
 
-module.exports = Router;
+module.exports = router;

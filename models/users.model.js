@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const schema = mongoose.Schema;
-const User = new schema({
+const user = new schema({
     firstName:{
         type:String,
         required:true
@@ -11,6 +11,10 @@ const User = new schema({
     },
     email:{
         type:String,
+        required:true
+    },
+    tel:{
+        type:Number,
         required:true
     },
     password:{
@@ -43,7 +47,7 @@ const User = new schema({
     
     },
     api_status: {
-        type: string,
+        type: String,
         required: false,
         default: 'active',
         enum: ['active', 'inactive'],
@@ -53,5 +57,5 @@ const User = new schema({
     timestamps:true
 },
 );
-    const userModel = mongoose.model("Users",User);
+    const userModel = mongoose.model("users",user);
 module.exports = userModel;
