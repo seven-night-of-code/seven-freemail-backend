@@ -1,17 +1,25 @@
 const users = require('../models/users.model');
 
-const register = async(req , res , next ) =>{
+const Register = async(req , res , next ) =>{
     try {
-        const user = new users({
-            firstName : req.body.firstName , 
-            lastName : req.body.lastName , 
-            email : req.body.email,
-            password : req.body.password,
-            role : req.body.role,
-            tel : req.body.tel
-        });
-        await user.save();
-    } catch (error) {
-        
+        const user = {firstName , lastName , email , password , tel} = req.body;
+        if(!firstName || !lastName || !email || !password || tel){
+            res.status(401).json("corrupted payload");
+            return 
+        }
+        const createdUser = await users.create({firstName , lastName , email , password , tel});
+                // return res.status(201).json({
+                //     error : 'false', 
+                //     status_code : 201,
+                //     message : 'user created successfully !!!'
+                // });
+                
+    }
+     catch (error) {
+    //     console.log(error);
     }
 }
+
+
+
+module.exports = { Register };
