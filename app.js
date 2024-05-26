@@ -1,9 +1,11 @@
+
 const express = require("express");
 const app = express();
 const cors = require("cors");
 const dotenv = require("dotenv");
 const mongoose = require("mongoose");
 const nodemailer = require("nodemailer");
+
 dotenv.config();
 
 console.log(process.env.MONGO_URL);
