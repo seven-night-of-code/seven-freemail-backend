@@ -1,4 +1,5 @@
 const users = require('../models/users.model');
+const bcrypt = require('bcrypt');
 
 const Register = async(req , res , next ) =>{
     try {
@@ -8,7 +9,7 @@ const Register = async(req , res , next ) =>{
             return user
         }
         const createdUser = await users.create({firstName , lastName , email , password , tel});
-        
+
                 // return res.status(201).json({
                 //     error : 'false', 
                 //     status_code : 201,
@@ -20,6 +21,8 @@ const Register = async(req , res , next ) =>{
      catch (error) {
     //     console.log(error);
     }
+
+   
 }
 
 
