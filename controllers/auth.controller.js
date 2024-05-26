@@ -34,4 +34,13 @@ const reset_password = (req, res) => {
         });
         
     }
+    else {
+        res.status(404).send('Invalid or expired token');
+      }
+}
+
+// Updating password
+const updating_password = (req, res) => {
+    const { token, password } = req.body;
+    const user = users.find(user => user.resetToken === token)
 }
