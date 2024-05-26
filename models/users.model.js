@@ -13,6 +13,10 @@ const User = new schema({
         type:String,
         required:true
     },
+    tel:{
+        type:Number,
+        required:true
+    },
     password:{
         type:String,
         required:true
