@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const schema = mongoose.Schema;
-const User = new schema({
+const user = new schema({
     firstName:{
         type:String,
         required:true
@@ -11,6 +11,10 @@ const User = new schema({
     },
     email:{
         type:String,
+        required:true
+    },
+    tel:{
+        type:Number,
         required:true
     },
     password:{
@@ -36,12 +40,27 @@ const User = new schema({
         type:String,
         required:false,
         default:"DP"
+    },
+    api_key: {
+        type: String,
+        required: false,
+    
+    },
+    api_status: {
+        type: String,
+        required: false,
+        default: 'active',
+        enum: ['active', 'inactive'],
     }
 },
 {
     timestamps:true
 },
 );
+<<<<<<< HEAD
 
 const userModel = mongoose.model("Users",User);
+=======
+    const userModel = mongoose.model("users",user);
+>>>>>>> f76162b22f17404ffc9eced024697b0fd02f007e
 module.exports = userModel;
