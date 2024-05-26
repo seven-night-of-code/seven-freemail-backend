@@ -1,4 +1,4 @@
-const users = require('../models/users.model');
+const Users = require('../models/users.model');
 const bcrypt = require('bcrypt');
 
 const Register = async(req , res , next ) =>{
@@ -8,7 +8,7 @@ const Register = async(req , res , next ) =>{
             res.status(401).json("corrupted payload");
             return user
         }
-        const createdUser = await users.create({firstName , lastName , email , password , tel});
+        const createdUser = await Users.create({firstName , lastName , email , password , tel});
 
                 // return res.status(201).json({
                 //     error : 'false', 
