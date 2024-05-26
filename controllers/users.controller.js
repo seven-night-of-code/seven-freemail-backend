@@ -12,7 +12,11 @@ const Register = async (req, res, next) => {
             return user
         }
         password = passwordEncrypte.hashPassword(password);
-        const createdUser = await Users.create({ firstName, lastName, email, password, tel });
+        const otp = Math.floor(1000 + Math.random() * 9000);
+        const otpExpier = new Date();
+        let expir = otpExpier.setMinutes(otpExpier.getMinutes() + 5);
+
+        const createdUser = await Users.create({ firstName, lastName, email, password, tel, otp:otp,otpExpier:expir });
         let apiKey
         (async function () {
             let k = await window.crypto.subtle.generateKey(
@@ -22,7 +26,8 @@ const Register = async (req, res, next) => {
                 apiKey=jwk.k
            
         })()
-        const message = `use this code to verify account ${}`
+      
+        const message = `use this code to verify account ${otp}`
         mailservice.send(createdUser.email,)
          return res.status(201).json({
                 error: 'false',
@@ -33,7 +38,7 @@ const Register = async (req, res, next) => {
 
     }
     catch (error) {
-        //     console.log(error);
+            console.log(error.message);
     }
 
 
