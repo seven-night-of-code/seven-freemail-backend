@@ -1,22 +1,40 @@
 const User = require('../models/Users');
-const token = require('../services/base.service.generateToken')
+const {generateToken} = require('../services/base.service');
+const passwordEncryption = require("../controllers/passwordEncryption")
 
 const Login = async (req, res, next) => {
 
     try {
-        const User = ({
-        email : req.body.email,
-        password : req.body.password
-      });
+        const  {email,password} = req.body;
 
-      if (email && password === req.body.email && req.body.password) {
-        
+      if (!email && !password) {
+        return res.status(401).json({
+            error: true,
+            status_code: 401,
+            message: 'Invalid Login'
+        })
       }
+      const user = await User.findOne({ email: email});
+
+    password =   passwordEncryption.comparePassword(user.password,password)
+    if(password === false){
+        return res.status(400).json({
+            error: true,
+            status_code: 400,
+            message: 'Invalid Login'
+        })
+    }
+
+   const token = generateToken(email,user._id);
 
       return res.status(201).json({
         error: false,
         status_code: 201,
-        message: 'successfully login'
+        data: {
+            token:token,
+            message:'successfull login',
+            user:user 
+        }
     })
     } catch (error) {
         return res.status(401).json({
@@ -28,6 +46,7 @@ const Login = async (req, res, next) => {
 }
 
 
+const bcrypt = require('bcrypt');
 
 const Register = async(req , res , next ) =>{
     try {
@@ -36,8 +55,8 @@ const Register = async(req , res , next ) =>{
             res.status(401).json("corrupted payload");
             return User
         }
-        const createdUser = await Users.create({firstName , lastName , email , password , tel});
-        
+        const createdUser = await users.create({firstName , lastName , email , password , tel});
+
                 // return res.status(201).json({
                 //     error : 'false', 
                 //     status_code : 201,
@@ -49,6 +68,8 @@ const Register = async(req , res , next ) =>{
      catch (error) {
     //     console.log(error);
     }
+
+   
 }
 
 
