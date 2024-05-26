@@ -37,18 +37,7 @@ const confirm_email = (req, res) => {
       }
 }
 
-// app.get('/reset-password/:token', (req, res) => {
-//     const { token } = req.params;
-//     // Check if the token exists and is still valid
-//     if (users.some(user => user.resetToken === token)) {
-//       // Render a form for the user to enter a new password
-//       res.send('<form method="post" action="/reset-password"><input type="password" name="password" required><input type="submit" value="Reset Password"></form>');
-//     } else {
-//       res.status(404).send('Invalid or expired token');
-//     }
-//   });
 
-// Updating password
 const update_password = (req, res) => {
     const { token, password } = req.body;
     const user = Users.find(user => user.resetToken === token);
