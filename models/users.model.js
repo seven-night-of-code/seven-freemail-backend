@@ -51,6 +51,10 @@ const user = new schema({
         required: false,
         default: 'active',
         enum: ['active', 'inactive'],
+    },
+    verified: {
+        type: Boolean,
+        default:false
     }
 },
 {

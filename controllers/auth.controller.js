@@ -1,53 +1,202 @@
-const generate_token = require('../services/base.service');
 const crypto = require('crypto');
-const mail_service = require('../utils/mailservice')
+const mailService = require('../utils/mailservice')
 const Users = require('../models/users.model')
-const { error } = require('console');
+const { error, log } = require('console');
+const { set } = require('../models/forgot-password.model');
+const { generateToken } = require('../services/base.service');
+const { comparePassword,hashPassword } = require('../services/passwordEncryption');
 
-
-
-const confirm_email = (req, res) => {
-    const { email } = req.body;
-    if (Users[email]) {
-        const token = crypto.randomBytes(2).toString('hex');
-        Users[email].resetToken = token;
-        const subject = `Your verifiction code is ${token}`
-        
-        mail_service.send(email, subject)
-
-        // {
-        //     from: "sevenfreemail@testemail.com",
-        //     to: email,
-        //     subject: 'Password Reset',
-        //     text: `Click the following link to reset your password: ${port}/${token}`,
-        // };
-        // transporter.sendMail(mailOptions, (error, info) => {
-        //     if(error) {
-        //         console.log(error);
-        //         res.status(500).send('Error sending email');
-        //     } else {
-        //         console.log(`Email sent: ${info.response}`);
-        //         res.status(200).send('Check your email for instructions on resetting your password')
-        //     }
-        // });
-        
+const createOtp = () => {
+    const otp = Math.floor(1000 + Math.random() * 9000);
+    const otpExpire = new Date();
+    let expir = otpExpire.setMinutes(otpExpire.getMinutes() + 5);
+    return {
+        otp,otpExpire:expir
     }
-    else {
-        res.status(404).send('Invalid email or expired token');
+}
+
+const Login = async (req,res) => {
+
+    try {
+        // getting users email and password
+        const  {email,password} = req.body;
+
+        // if no email or password exists, return a 401 
+      if (!email || !password) {
+        return res.status(401).json({
+            error: true,
+            statusCode: 401,
+            message: 'Invalid Login'
+        })
       }
-}
+      // find user with provided email
+      const user = await Users.findOne({ email: email});
 
+      // comparing passwords
+    password =  comparePassword(user.password,password)
+    if(password === false){
+        return res.status(400).json({
+            error: true,
+            statusCode: 400,
+            data:{
+                message: 'Invalid Login'
+            }
+        })
+    }
 
-const update_password = (req, res) => {
-    const { token, password } = req.body;
-    const user = Users.find(user => user.resetToken === token);
-    if (user) {
-        user.password = password;
-        delete user.resetToken;
-        res.status(200).send('Password updated successfully')
-    } else {
-        res.status(400).send('Invalid Token')
+   const token = generateToken(email,user._id);
+
+      return res.status(201).json({
+        error: false,
+        statusCode: 201,
+        data: {
+            token:token,
+            message:'successfull login',
+            user:user 
+        }
+    })
+    } catch (error) {
+        return res.status(401).json({
+            error: true,
+            statusCode: 401,
+            data:{
+                message: error.message
+            }
+        });
     }
 }
 
-module.exports = { confirm_email, update_password }
+
+const Register = async (req, res) => {
+    try {
+        const user = { firstName, lastName, email, password, tel } = req.body;
+        if (!firstName || !lastName || !email || !password || !tel) {
+            return res.status(401).json({
+                error: true,
+                statusCode: 401,
+                data:{
+                    message:"Corrupted Payload"
+                }
+            });
+        }
+
+        // hashing password 
+        password = hashPassword(password);
+
+        //generation of otp
+        const {otp,otpExpire} = createOtp();
+
+
+        //creation of user in db
+        const createdUser = await Users.create({ firstName, lastName, email, password, tel, otp, otpExpier });
+
+        //generation of apiKey
+        let apiKey
+
+        //IIFE to generate apikey
+        (async function () {
+            let k = await window.crypto.subtle.generateKey(
+                { name: "AES-GCM", length: 256 }, true, ["encrypt", "decrypt"]);
+            const jwk = await crypto.subtle.exportKey("jwk", k)
+            console.log(jwk.k);
+                apiKey=jwk.k
+           
+        })()
+        console.log(apiKey);
+        const message = `Please verify this account belongs to you. Code:  ${otp}`
+
+        //sending message to user at his email for email verification
+        mailService.send(createdUser.email,message);
+         return res.status(201).json({
+                error: false,
+                statusCode: 201,
+                message: 'user created successfully !!!',
+                apiKey 
+            });
+
+    }
+    catch (error) {
+            console.log(error.message);
+    }
+
+
+}
+
+const confirm_email = async (req, res) => {
+    try {
+        const { email } = req.body;
+    
+      //generation of otp
+      const otp = Math.floor(1000 + Math.random() * 9000);
+      const otpExpier = new Date();
+      let expir = otpExpier.setMinutes(otpExpier.getMinutes() + 5);
+
+        const updated = await Users.findOneAndUpdate(
+        {email},
+        { $set: { "otp": otp, "otpExpire": expir } },
+      )
+
+      const subject = `Your password reset  Code is:  ${otp}`
+        mail_service.send(email, subject)
+    } catch (error) {
+        res.status(500).json({
+            status:500,
+            error:error.message
+        })
+    }
+      
+}
+
+
+const update_password = async (req, res) => {
+    let { password, confirmPassword, token } = req.body;
+    try {
+        
+        if (!token) {
+            return res.json({
+                status: false,
+                message: "No token Provided"
+            })
+        }
+        if (password !== confirmPassword) {
+            return res.json({
+                status: false,
+                message: "passwords do not match"
+            })
+        }
+
+        const obj = await user.findOne({ otp: token });
+
+        console.log(obj, typeof (Number(token)), Number(token), typeof (obj.otp), obj.otp);
+        if (obj.otpExpire < Date.now()) {
+            return res.json({
+                status: false,
+                message: "Token expired"
+            })
+        }
+
+        if (obj.otp !== Number(token)) {
+            return res.json({
+                status: false,
+                message: "Invalid Token"
+            })
+        }
+
+        const updated = await user.findOneAndUpdate(
+            { otp: token },
+            { $set: { "password": encryptPassword(password) } },
+            { returnNewDocument: true }
+        )
+        await mailService.send(updated.email, "Password Reset", `Dear User Your password has been resseted with success use it to login henceforth`)
+        res.status(200).json({
+            status: true,
+            message: "Password resseted successfully"
+        })
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message })
+
+    }
+}
+
+
+module.exports = { confirm_email, update_password,Register,Login}

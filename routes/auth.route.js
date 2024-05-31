@@ -1,7 +1,10 @@
 const { Router } = require('express');
 const router = Router();
+const { guard } = require('../middleware/user.middleware');
 
-const authController = require('../controllers/auth.controller')
+guard
 
-router.post('/', authController.confirm_email);
-router.post('/', authController.update_password)
+const authController = require('../controllers/auth.controller');
+
+router.post('/resetPassword', guard(),authController.confirm_email);
+router.post('/', authController.update_password);

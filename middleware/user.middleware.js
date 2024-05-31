@@ -1,6 +1,6 @@
 const token = require('../services/base.service')
 const User = require('../models/users.model')
-const guard = async (req, res, next) => {
+export const guard = async (req, res, next) => {
 
     try {
         const { email } = req.body;
