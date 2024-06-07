@@ -1,6 +1,7 @@
-const token = require('../services/base.service')
-const User = require('../models/users.model')
-export const guard = async (req, res, next) => {
+const token = require('../services/base.service');
+const User = require('../models/users.model');
+
+ const guard = async (req, res, next) => {
 
     try {
         const { email } = req.body;
@@ -12,7 +13,7 @@ export const guard = async (req, res, next) => {
             })
         } 
 
-        const user = await User.findOne({ email: email})
+        const user = await User.findOne({email})
         if (!user) {
             res.status(404).json({
                 status:404,
@@ -30,3 +31,4 @@ export const guard = async (req, res, next) => {
     }
 
 }
+module.exports = guard

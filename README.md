@@ -3,3 +3,4 @@ clone the repo and accomplish the following
 - Free to install any package needed for development
 - create a branch with your name and suffix with dev
 - Note Normenclature used is snake case for example (name-dev)
+- for variable and constant declarations, use camel case (camelCase)

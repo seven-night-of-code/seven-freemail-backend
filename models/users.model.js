@@ -41,12 +41,12 @@ const user = new schema({
         required:false,
         default:"DP"
     },
-    api_key: {
+    apiKey: {
         type: String,
         required: false,
     
     },
-    api_status: {
+    apiStatus: {
         type: String,
         required: false,
         default: 'active',

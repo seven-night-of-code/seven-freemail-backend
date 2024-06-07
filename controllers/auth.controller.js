@@ -1,20 +1,21 @@
 const crypto = require('crypto');
 const mailService = require('../utils/mailservice')
 const Users = require('../models/users.model')
-const { error, log } = require('console');
-const { set } = require('../models/forgot-password.model');
 const { generateToken } = require('../services/base.service');
 const { comparePassword,hashPassword } = require('../services/passwordEncryption');
 
 const createOtp = () => {
-    const otp = Math.floor(1000 + Math.random() * 9000);
+    const otp = Math.floor(100000 + Math.random() * 9000);
     const otpExpire = new Date();
-    let expir = otpExpire.setMinutes(otpExpire.getMinutes() + 5);
+    let expir = otpExpire.setMinutes(otpExpire.getMinutes() + 10);
     return {
         otp,otpExpire:expir
     }
 }
-
+const genApikey = () => {
+    return crypto.randomBytes(8).toString("hex");
+}
+genApikey()
 const Login = async (req,res) => {
 
     try {
@@ -88,21 +89,10 @@ const Register = async (req, res) => {
 
 
         //creation of user in db
-        const createdUser = await Users.create({ firstName, lastName, email, password, tel, otp, otpExpier });
+        const createdUser = await Users.create({ firstName, lastName, email, password, tel, otp, otpExpire });
 
-        //generation of apiKey
-        let apiKey
-
-        //IIFE to generate apikey
-        (async function () {
-            let k = await window.crypto.subtle.generateKey(
-                { name: "AES-GCM", length: 256 }, true, ["encrypt", "decrypt"]);
-            const jwk = await crypto.subtle.exportKey("jwk", k)
-            console.log(jwk.k);
-                apiKey=jwk.k
-           
-        })()
-        console.log(apiKey);
+      
+        
         const message = `Please verify this account belongs to you. Code:  ${otp}`
 
         //sending message to user at his email for email verification
@@ -111,7 +101,6 @@ const Register = async (req, res) => {
                 error: false,
                 statusCode: 201,
                 message: 'user created successfully !!!',
-                apiKey 
             });
 
     }
@@ -122,34 +111,90 @@ const Register = async (req, res) => {
 
 }
 
-const confirm_email = async (req, res) => {
+const confirmAccount =  async (req,res) => {
     try {
-        const { email } = req.body;
-    
-      //generation of otp
-      const otp = Math.floor(1000 + Math.random() * 9000);
-      const otpExpier = new Date();
-      let expir = otpExpier.setMinutes(otpExpier.getMinutes() + 5);
-
-        const updated = await Users.findOneAndUpdate(
-        {email},
-        { $set: { "otp": otp, "otpExpire": expir } },
-      )
-
-      const subject = `Your password reset  Code is:  ${otp}`
-        mail_service.send(email, subject)
+        let {email,token} = req.body;
+        if(!token || !email){
+            return res.status(401).json({
+                error: true,
+                statusCode: 401,
+                data:{
+                    message:"Corrupted Payload"
+                }
+            });
+        }
+         token = Number(token);
+        const userToken = await Users.findOne({email});
+        if(!userToken){
+            return res.status(401).json({
+                error: true,
+                statusCode: 401,
+                data:{
+                    message:"Account not found"
+                }
+            });
+        }
+        if(userToken.otp !== token || userToken.otpExpire < Date.now()){
+            return res.status(401).json({
+                error: true,
+                statusCode: 401,
+                data:{
+                    message:"Error verifying account"
+                }
+            });
+        }
+          //generation of apiKey
+          let apiKey
+          apiKey = genApikey();
+        const verifiedUser = await Users.findOneAndUpdate(
+            {email},
+            {$set:{
+                "verified":true,
+                "apiKey":apiKey
+            }}
+        )
+        return res.status(201).json({
+                verified:true,
+                statusCode:201,
+                apiKey
+            })
     } catch (error) {
         res.status(500).json({
             status:500,
             error:error.message
         })
     }
-      
 }
 
+const confirmEmail =  async (req,res) => {
+    try {
+        let {email} = req.body;
+        let {otp,otpExpire} = createOtp();
+        const confirmedEmail = await Users.findOneAndUpdate(
+            {email},
+            {$set:{
+                "otp":otp,
+                "otpExpire":otpExpire
+            }}
+        )
+        const message = `Please verify this account belongs to you. Code:  ${otp}`
 
-const update_password = async (req, res) => {
-    let { password, confirmPassword, token } = req.body;
+        //sending message to user at his email for email verification
+        mailService.send(email,message);
+        return res.status(201).json({
+                verified:true,
+                statusCode:201,
+            })
+    } catch (error) {
+        res.status(500).json({
+            status:500,
+            error:error.message
+        })
+    }
+}
+
+const updatePassword = async (req, res) => {
+    let { password, confirmPassword, token} = req.body;
     try {
         
         if (!token) {
@@ -165,7 +210,7 @@ const update_password = async (req, res) => {
             })
         }
 
-        const obj = await user.findOne({ otp: token });
+        const obj = await Users.findOne({ otp: token });
 
         console.log(obj, typeof (Number(token)), Number(token), typeof (obj.otp), obj.otp);
         if (obj.otpExpire < Date.now()) {
@@ -182,12 +227,12 @@ const update_password = async (req, res) => {
             })
         }
 
-        const updated = await user.findOneAndUpdate(
+        const updated = await Users.findOneAndUpdate(
             { otp: token },
             { $set: { "password": encryptPassword(password) } },
             { returnNewDocument: true }
         )
-        await mailService.send(updated.email, "Password Reset", `Dear User Your password has been resseted with success use it to login henceforth`)
+         mailService.send(updated.email, "Password Reset", `Dear User Your password has been resseted with success use it to login henceforth`)
         res.status(200).json({
             status: true,
             message: "Password resseted successfully"
@@ -199,4 +244,4 @@ const update_password = async (req, res) => {
 }
 
 
-module.exports = { confirm_email, update_password,Register,Login}
+module.exports = { confirmAccount, updatePassword,Register,Login}
