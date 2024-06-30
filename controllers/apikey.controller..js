@@ -9,7 +9,7 @@ const apiToggle = async (req, res, next) => {
       message: "user not found",
     });
   }
-    if (user.apiStatus == "active") {
+    if (user.apiStatus === "active") {
       user.apiStatus = "inactive";
     } else {
       user.apiStatus = "active";
@@ -19,7 +19,6 @@ const apiToggle = async (req, res, next) => {
       message: "api status updated",
     });
   }
-};
 
 const codeValidation = async (req, res) => {
   const body = req.body;

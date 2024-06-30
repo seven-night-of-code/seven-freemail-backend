@@ -1,13 +1,56 @@
 const token = require('../services/base.service');
 const User = require('../models/users.model');
 
- const guard = async (req, res, next) => {
+const guards = {
+    
+  headerFxn : (req, res, next) => {
+    const header = req.headers["authorisation"];
+    if (!header) {
+        return res.status(401).json({
+            status: false,
+            error: {
+                message: 'Auth headers not provided in the request.'
+            }
+        });
+    }
+
+    const token = header.split(" ")[1];
+
+    if (!token) {
+        return res.status(401).json({
+            status: false,
+            error: {
+                message: 'No token provided'
+            }
+        });
+    }
+
+    let validToken;
+
+    try {
+        validToken = jwt.verify(token, process.env.JWTSECRET);
+    }
+    catch (error) {
+        if (error instanceof JsonWebTokenError) {
+            return res.status(401).json({
+                status: 1,
+                message: "Invalid access"
+            })
+        }
+
+        return res.status(401).end();
+    }
+    res.json(validToken);
+    next();
+},
+
+ guard : async (req, res, next) => {
 
     try {
         const { email } = req.body;
 
         if (!email) {
-            res.status(400).json({
+           return res.status(400).json({
                 status:400,
                 message:"no email address"
             })
@@ -15,9 +58,9 @@ const User = require('../models/users.model');
 
         const user = await User.findOne({email})
         if (!user) {
-            res.status(404).json({
+          return   res.status(404).json({
                 status:404,
-                message:"user not found"
+                message:"Invalid Login"
             })
         }
         next();
@@ -29,6 +72,7 @@ const User = require('../models/users.model');
             message:"internal server error"
         })
     }
-
 }
-module.exports = guard
+}
+
+module.exports = {guards}

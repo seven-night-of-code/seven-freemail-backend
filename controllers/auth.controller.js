@@ -3,7 +3,13 @@ const mailService = require('../utils/mailservice')
 const Users = require('../models/users.model')
 const { generateToken } = require('../services/base.service');
 const { comparePassword,hashPassword } = require('../services/passwordEncryption');
-
+const validateUser = async  (email) => {
+    const userObtained = await Users.findOne({email});
+    if(!userObtained){
+         return {status:401}
+    }
+    return {status:200}
+}
 const createOtp = () => {
     const otp = Math.floor(100000 + Math.random() * 9000);
     const otpExpire = new Date();
@@ -20,7 +26,7 @@ const Login = async (req,res) => {
 
     try {
         // getting users email and password
-        const  {email,password} = req.body;
+        let  {email,password} = req.body;
 
         // if no email or password exists, return a 401 
       if (!email || !password) {
@@ -81,6 +87,12 @@ const Register = async (req, res) => {
             });
         }
 
+        const fromValidateUser = await validateUser(email)
+        console.log(fromValidateUser);
+
+        if(fromValidateUser.status === 200) return res.status(409).json({error:true,
+            message:"user exists"
+        })
         // hashing password 
         password = hashPassword(password);
 
@@ -146,13 +158,20 @@ const confirmAccount =  async (req,res) => {
           //generation of apiKey
           let apiKey
           apiKey = genApikey();
-        const verifiedUser = await Users.findOneAndUpdate(
-            {email},
-            {$set:{
-                "verified":true,
-                "apiKey":apiKey
-            }}
-        )
+        // const verifiedUser = await Users.findOneAndUpdate(
+        //     {email},
+        //     {$set:{
+        //         "verified":true,
+        //         "apiKey":apiKey
+        //     }}
+        // )
+        const verifUser = Users.find({email})
+        console.log(verifUser);
+        verifUser.verified = true
+        verifUser.apiKey = apiKey
+
+       await verifUser.save();
+
         return res.status(201).json({
                 verified:true,
                 statusCode:201,

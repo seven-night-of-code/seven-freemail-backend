@@ -2,6 +2,7 @@ const nodemailer = require("nodemailer");
 class MailService {
 
     transporter () {
+        console.log("email password:",process.env.MAIL_PASSWORD);
         return nodemailer.createTransport({
             host: process.env.MAIL_HOST,
             port: process.env.MAIL_PORT,
@@ -18,7 +19,7 @@ class MailService {
         try {
 
             await this.transporter().sendMail({
-                from: "Free Email <smartstudyteam07@gmail.com>",
+                from: "Free Email <billytatangwa5@gmail.com>",
                 to: receivers,
                 subject: subject,
                 text: content,
