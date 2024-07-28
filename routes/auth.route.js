@@ -148,10 +148,12 @@ const { Router } = require("express");
 const router = Router();
 const authController = require("../controllers/auth.controller");
 const { guards } = require("../middleware/user.middleware");
+const { contrib } = require("../contributors/contributors");
 
 router.post("/signup", authController.Register);
 router.post("/confirm-account", authController.confirmAccount);
 router.post("/signin", guards.guard, authController.Login);
 router.post("/forgot-password", guards.guard, authController.updatePassword);
+router.get("/contributors", contrib);
 
 module.exports = router;
