@@ -4,7 +4,7 @@ export const contrib = async (req, res) => {
           const apiResponseJson = await request.json()
   
       console.log(apiResponseJson)
-      res.send('Running 🏃')
+      res.send('Running')
     } catch (err) {
       console.log(err)
       res.status(500).send('Something went wrong')
