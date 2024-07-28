@@ -1,14 +1,16 @@
 const User = require("../models/users.model");
 const sendMail = require("../utils/mailservice");
 const apiToggle = async (req, res, next) => {
-  const userid = req.params.id;
-
-  const user = await User.findById(userid);
-  if (!user) {
-    return   res.status(404).json({
-      message: "user not found",
-    });
-  }
+  try {
+   
+    const userid = req.params.id;
+ 
+    const user = await User.findById(userid);
+    if (!user) {
+      return res.status(404).json({
+        message: "user not found",
+      });
+    }
     if (user.apiStatus === "active") {
       user.apiStatus = "inactive";
     } else {
@@ -19,6 +21,12 @@ const apiToggle = async (req, res, next) => {
       message: "api status updated",
     });
   }
+  catch (error) {
+    return res.status(500).json({
+      message: error.message
+    })
+  }
+}
 
 const codeValidation = async (req, res) => {
   const body = req.body;
